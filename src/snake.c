@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "snake_utils.h"
 #include "state.h"
@@ -44,6 +45,10 @@ int main(int argc, char *argv[]) {
   // Read board from file, or create default board
   if (in_filename != NULL) {
     FILE *fp = fopen(in_filename, "r");
+    if (fp == NULL){
+      exit(-1);
+    }
+
     state = load_board(fp);
     initialize_snakes(state);
     fclose(fp);
@@ -55,7 +60,7 @@ int main(int argc, char *argv[]) {
   }
 
   if (state == NULL){
-    return 1;
+    exit(-1);
   }
 
   // Update state. Use the deterministic_food function

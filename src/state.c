@@ -420,7 +420,7 @@ void update_state(game_state_t *state, int (*add_food)(game_state_t *state))
 char *read_line(FILE *fp)
 { 
   size_t capacity = 128;
-  char *line = malloc(sizeof(char) * capacity);
+  char *line = malloc(capacity * sizeof(char));
   if (line == NULL)
   {
     return NULL;
@@ -432,7 +432,8 @@ char *read_line(FILE *fp)
   }
 
   
-  while (line[capacity - 2] != '\0' && line[capacity - 2] != '\n'){
+  char *newLine = memchr(line, '\n', capacity - 1);
+  while (newLine == NULL){
     // fgets doesnt meet \n
     size_t oldCap = capacity;
     capacity += (capacity + 1) / 2;
@@ -443,11 +444,12 @@ char *read_line(FILE *fp)
     // n = old + 2
     char *concatStart = line + (oldCap -1);
     fgets(concatStart, capacity - oldCap + 1, fp);
+    newLine = memchr(concatStart, '\n', capacity - oldCap);
   }
 
   // 根据字符的实际长度缩小空间
-  // size_t actualLen = strchr(line, '\0') - line + 1;
-  // line = realloc(line, sizeof(char) * actualLen);
+  size_t actualLen = newLine - line + 2;
+  line = realloc(line, sizeof(char) * actualLen);
   return line;
 }
 
@@ -496,7 +498,10 @@ game_state_t *load_board(FILE *fp)
     lineNum++;
   }
   gameState->num_rows = lineNum;
-   // todo: 如果capacity > lineNum; 缩小为state->board分配的内存空间
+  // 如果capacity > lineNum; 缩小为state->board分配的内存空间
+  if (capacity > lineNum){
+    gameState->board = realloc(gameState->board, sizeof(char *) * lineNum);
+  } 
   return gameState;
 }
 
@@ -521,7 +526,6 @@ static void find_head(game_state_t *state, unsigned int snum)
     curRow = get_next_row(curRow, curC);
     curCol = get_next_col(curCol, curC);
     curC = get_board_at(state, curRow, curCol);
-    // todo: 避免进入死循环
   }
 
   snake->head_row = curRow;
@@ -572,6 +576,10 @@ game_state_t *initialize_snakes(game_state_t *state)
     }
   }
   state->num_snakes = numSnakes;
-  // todo: 如果capacity > numSnakes; 缩小为state->snakes分配的内存空间
+  // 如果capacity > numSnakes; 缩小为state->snakes分配的内存空间
+  if (capacity > numSnakes){
+    state->snakes = realloc(state->snakes, sizeof(snake_t) * numSnakes);
+  }
+
   return state;
 }
