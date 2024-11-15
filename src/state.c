@@ -432,7 +432,7 @@ char *read_line(FILE *fp)
   }
 
   
-  char *newLine = memchr(line, '\n', capacity - 1);
+  char *newLine = memchr(line, '\n', strlen(line));
   while (newLine == NULL){
     // fgets doesnt meet \n
     size_t oldCap = capacity;
@@ -441,10 +441,9 @@ char *read_line(FILE *fp)
     
     // line[old capacity-1] = '\0'; 
     // fgets to cover index from old capacity - 1 to new capacity - 1
-    // n = old + 2
     char *concatStart = line + (oldCap -1);
     fgets(concatStart, capacity - oldCap + 1, fp);
-    newLine = memchr(concatStart, '\n', capacity - oldCap);
+    newLine = memchr(concatStart, '\n', strlen(concatStart));
   }
 
   // 根据字符的实际长度缩小空间
